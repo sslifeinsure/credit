@@ -401,6 +401,7 @@
                 <button class="tag-btn" onclick="selectTag('S-Oil')">S-Oil</button>
                 <button class="tag-btn" onclick="selectTag('LG화학')">LG화학</button>
                 <button class="tag-btn" onclick="selectTag('여천NCC')">여천NCC</button>
+                <button class="tag-btn" onclick="selectTag('세아제강')">세아제강</button>
             </div>
         </div>
 
@@ -591,6 +592,34 @@
                     inventoryDaysDiff: -2.29
                 },
                 opinion: "에틸렌-나프타 스프레드가 $200 대에 불과하여 손익분기점인 톤당 $300을 지속적으로 밑돌며 마진 스프레드 적자가 고착화됨. 1분기 공시 영업이익은 -242억 원 적자를 기록했으나, 실제 현금성 손실은 장부상 재고자산평가손실환입 193억 원 효과를 제거할 경우 실질 영업이익은 -435억 원 적자 상태로, 업황 침체가 극심하여 적자폭이 더욱 확대되는 Red(위험) 징후로 분석됨."
+            },
+            "세아제강": {
+                name: "세아제강",
+                sector: "철강",
+                corpCode: "01325979",
+                level: "Yellow",
+                isSteel: true,
+                judgeResult: "세아제강은 자체 고로나 전기로 제강 설비 없이 포스코 등에서 핫코일(열연강판)을 조달하여 강관을 제조하는 '하공정(Downstream) 강관 제조사'로 분류됨.",
+                metrics: {
+                    rollMargin: 270,
+                    inventoryDays: -1.65
+                },
+                bep: {
+                    rollMargin: 300,
+                    inventoryDays: 6
+                },
+                financials: {
+                    reportedOP: 24108279088,
+                    reportedOP2025: 49601484490,
+                    inventoryValLoss: 0,
+                    inventoryReversal: 2372927615,
+                    endingInventory: 348428329956,
+                    allowance: 12000000000,
+                    inventoryDaysCurrent: 75.02,
+                    inventoryDaysPrior: 76.66,
+                    inventoryDaysDiff: -1.65
+                },
+                opinion: "미국 내 HRC 가격 강세 및 오프쇼어 에너지 프로젝트(CCUS, 해상풍력 등) 수요 견조로 유정관 및 송유관 수출 부문은 우수한 마진 스프레드를 방어하고 있음. 다만, 국내 건설 경기 침체 장기화로 내수용 배관재 단가와 수요가 동반 부진한 상태임. 1분기 공시 영업이익은 241억 원이나, 주석상 재고자산평가손실환입 24억 원 효과를 제외한 실질 영업이익은 217억 원으로, 국내 시황 부진 및 대미 쿼터 규제 리스크를 감안하여 보수적 관점에서 Yellow(주의) 단계를 적용함."
             }
         };
 
@@ -608,7 +637,10 @@
             "엘지화학": "LG화학",
             "여천ncc": "여천NCC",
             "여천": "여천NCC",
-            "여천엔씨씨": "여천NCC"
+            "여천엔씨씨": "여천NCC",
+            "세아제강": "세아제강",
+            "세아": "세아제강",
+            "seah": "세아제강"
         };
 
         function selectTag(name) {
