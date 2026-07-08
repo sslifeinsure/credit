@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>베테랑 크레딧 심사역 - 기업 신용위험(Credit Risk) 분석 시스템</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -443,7 +446,7 @@
                 },
                 financials: {
                     reportedOP: 73478150850,
-                    reportedOP2025: -244879980612,
+                    reportedOPPrior: -126600377008,
                     inventoryValLoss: 0,
                     inventoryReversal: 78269000000,
                     endingInventory: 3043924229323,
@@ -471,7 +474,7 @@
                 },
                 financials: {
                     reportedOP: 706831933233,
-                    reportedOP2025: 607172109226,
+                    reportedOPPrior: 568441042504,
                     inventoryValLoss: 79586155986,
                     inventoryReversal: 0,
                     endingInventory: 14144102905447,
@@ -501,7 +504,7 @@
                 },
                 financials: {
                     reportedOP: 15689403201,
-                    reportedOP2025: 101768116766,
+                    reportedOPPrior: -19028045095,
                     inventoryValLoss: 1200000000,
                     inventoryReversal: 0,
                     endingInventory: 1850000000000,
@@ -528,7 +531,7 @@
                 },
                 financials: {
                     reportedOP: 124500000000,
-                    reportedOP2025: 843000000000,
+                    reportedOPPrior: -21541000000,
                     inventoryValLoss: 142000000000,
                     inventoryReversal: 0,
                     endingInventory: 1240000000000,
@@ -555,7 +558,7 @@
                 },
                 financials: {
                     reportedOP: 264000000000,
-                    reportedOP2025: 1120000000000,
+                    reportedOPPrior: 446971000000,
                     inventoryValLoss: 48000000000,
                     inventoryReversal: 0,
                     endingInventory: 2450000000000,
@@ -582,7 +585,7 @@
                 },
                 financials: {
                     reportedOP: -24178540976,
-                    reportedOP2025: -251425869461,
+                    reportedOPPrior: -32580000000,
                     inventoryValLoss: 0,
                     inventoryReversal: 19281438666,
                     endingInventory: 345000594795,
@@ -610,7 +613,7 @@
                 },
                 financials: {
                     reportedOP: 24108279088,
-                    reportedOP2025: 49601484490,
+                    reportedOPPrior: 25581035965,
                     inventoryValLoss: 0,
                     inventoryReversal: 2372927615,
                     endingInventory: 348428329956,
@@ -779,7 +782,7 @@
 
             // Numbers format
             const reportedOPText = (comp.financials.reportedOP / 100000000).toFixed(2) + "억 원";
-            const reportedOP2025Text = (comp.financials.reportedOP2025 / 100000000).toFixed(2) + "억 원";
+            const reportedOPPriorText = (comp.financials.reportedOPPrior / 100000000).toFixed(2) + "억 원";
             
             let inventoryValTxt = "";
             let adjustedOPText = "";
@@ -878,7 +881,7 @@
 
                     <div class="report-text" style="font-weight: 700; background-color: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; margin-top: 15px;">
                         * 공시 연동 실질 영업이익 재산출 공식 반영:<br>
-                        - 공시 영업이익 (최근 분기): ${reportedOPText} (직전년도 연간: ${reportedOP2025Text})<br>
+                        - 공시 영업이익 (최근 분기): ${reportedOPText} (전년 동기: ${reportedOPPriorText})<br>
                         - ${inventoryValTxt}<br>
                         - <strong>기저효과 제거 실질 영업이익: ${adjustedOPText}</strong> (재고 평가 손익 효과 제외 시)
                     </div>
