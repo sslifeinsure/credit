@@ -1324,13 +1324,57 @@
                     </div>
 
                     <h3 style="font-size: 14px; font-weight: 700; margin: 25px 0 10px 0;">[정성 데이터]</h3>
-                    <div class="report-text">
+                    <div class="report-text" style="margin-bottom: 20px;">
                         ${comp.opinion}
+                    </div>
+
+                    <!-- AI 심사역 분석 요약 -->
+                    <div class="ai-summary-box" style="margin-top: 25px; padding: 20px; background: rgba(59, 130, 246, 0.04); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                        <h4 style="font-size: 13px; font-weight: 700; margin: 0 0 12px 0; color: #2563eb; display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 16px;">🤖</span>
+                            AI 심사역 실시간 컨텍스트 및 글로벌 동향 분석 (Disclosures & Chinese Inventory Trends)
+                        </h4>
+                        <div id="ai-summary-content" class="report-text" style="font-size: 12px; line-height: 1.6; color: #334155; white-space: pre-wrap; font-family: 'Noto Sans KR', sans-serif;">
+                            로딩 중...
+                        </div>
                     </div>
                 </div>
             `;
 
             reportCard.style.display = 'block';
+
+            // 비동기로 AI 요약 데이터 로드
+            fetchAiSummary(comp.name, comp.sector, comp.opinion);
+        }
+
+        async function fetchAiSummary(name, sector, opinion) {
+            const targetDiv = document.getElementById('ai-summary-content');
+            if (!targetDiv) return;
+
+            targetDiv.innerHTML = '<span style="color: #64748b; font-style: italic;">심사 리포트를 기반으로 AI가 실시간 공시/뉴스 및 중국 재고 동향을 분석하고 있습니다. 약 5~10초 소요됩니다...</span>';
+
+            try {
+                const res = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, sector, opinion })
+                });
+
+                if (!res.ok) {
+                    const errBody = await res.json().catch(() => ({}));
+                    throw new Error(errBody.error || `HTTP error! status: ${res.status}`);
+                }
+
+                const data = await res.json();
+                
+                // 줄바꿈이 있는 텍스트로 자연스럽게 대입
+                targetDiv.innerHTML = data.summary || '생성된 분석 내용이 없습니다.';
+            } catch (err) {
+                console.error('AI 요약 실패:', err);
+                targetDiv.innerHTML = `<span style="color: #dc2626; font-weight: 500;">[AI 분석 실패] ${err.message}.<br><span style="font-size: 11px; color: #64748b;">(DART API 연동을 위해 로컬 개발 서버 node server.js를 구동하고 .env 파일에 GEMINI_API_KEY를 설정하셔야 합니다.)</span></span>`;
+            }
         }
     </script>
 </body>

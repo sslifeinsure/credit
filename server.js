@@ -5,8 +5,24 @@ const path = require('path');
 const url = require('url');
 const { execSync } = require('child_process');
 
+// Load environment variables from .env file manually
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+            const [key, ...valParts] = trimmed.split('=');
+            if (key) {
+                process.env[key.trim()] = valParts.join('=').trim();
+            }
+        }
+    });
+}
+
 const PORT = 8080;
-const DART_API_KEY = 'c11b6750932e328048fb1f7d6e660f5d209080ee';
+const DART_API_KEY = process.env.DART_API_KEY || 'c11b6750932e328048fb1f7d6e660f5d209080ee';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // ====================================================================
 // CORPCODE.xml을 서버 시작 시 1회만 파싱하여 메모리 딕셔너리로 캐싱
@@ -387,6 +403,105 @@ const server = http.createServer((req, res) => {
         }).on('error', (err) => {
             res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ error: err.message }));
+        });
+        return;
+    }
+
+    // --- API: Summarize using Gemini LLM ---
+    if (pathname === '/api/summarize' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', async () => {
+            try {
+                if (!GEMINI_API_KEY) {
+                    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ error: 'GEMINI_API_KEY가 서버 환경 변수에 설정되어 있지 않습니다.' }));
+                    return;
+                }
+
+                const parsed = JSON.parse(body || '{}');
+                const { name, sector, opinion } = parsed;
+                if (!name) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ error: 'name parameter is required' }));
+                    return;
+                }
+
+                const prompt = `당신은 대한민국 최고 수준의 전문 크레딧 심사역(Credit Risk Analyst)입니다.
+다음 정보를 바탕으로 해당 기업의 신용 리스크 요인을 종합 분석하고, 최근 공시/뉴스 흐름 및 글로벌(특히 중국) 재고/공급 과잉 동향을 감안하여 심도 깊은 [정성 데이터 분석 요약]을 작성해 주세요.
+
+[분석 대상 기업]
+- 기업명: ${name}
+- 업종: ${sector}
+- 기본 신용 의견: ${opinion}
+
+[작성 가이드라인]
+1. 리포트 하단에 들어갈 실시간 분석 정보이므로 전문적이고 분석적인 톤앤매너를 유지해 주세요. (경어체로 작성하되 단락 구분을 명확히 해 주십시오.)
+2. 다음 3가지 핵심 축을 반드시 포함하여 작성해 주세요:
+   - **글로벌 및 중국 재고/수급 동향**: 해당 업종의 중국발 공급 과잉(예: 석화 부문 에틸렌/나프타 스프레드 침체, 철강 부문 중국 저가 철강 수출 공세 등)이 해당 기업의 재고 건전성과 수익성에 미치는 리스크.
+   - **최근 공시 및 뉴스 컨텍스트 분석**: 최근 산업계 뉴스 및 공시 정보(스프레드 악화, 지정학적 리스크, 판매 단가 인상 여부 등)가 리스크에 미치는 영향.
+   - **최종 크레딧 심사 총평 및 리스크 모니터링 포인트**.
+3. 가독성을 위해 문단을 나누고 깔끔하게 작성해 주세요. (마크다운 포맷 대신 줄바꿈을 포함한 일반 텍스트 포맷으로 전달해 주십시오.)`;
+
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+                const apiReqBody = JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
+                });
+
+                const targetUrl = new URL(geminiUrl);
+                const options = {
+                    hostname: targetUrl.hostname,
+                    port: 443,
+                    path: targetUrl.pathname + targetUrl.search,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Node-HTTPS-Client'
+                    }
+                };
+
+                const geminiReq = https.request(options, (geminiRes) => {
+                    let resBody = '';
+                    geminiRes.on('data', chunk => {
+                        resBody += chunk.toString();
+                    });
+                    geminiRes.on('end', () => {
+                        try {
+                            const parsedRes = JSON.parse(resBody);
+                            if (parsedRes.error) {
+                                throw new Error(parsedRes.error.message || 'Gemini API Error');
+                            }
+                            const summaryText = parsedRes.candidates[0].content.parts[0].text;
+                            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                            res.end(JSON.stringify({ summary: summaryText }));
+                        } catch (err) {
+                            console.error('Gemini parse error:', err, 'Response:', resBody);
+                            res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                            res.end(JSON.stringify({ error: `Gemini 응답 파싱 실패: ${err.message}` }));
+                        }
+                    });
+                });
+
+                geminiReq.on('error', (err) => {
+                    console.error('Gemini request error:', err);
+                    res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ error: `Gemini API 요청 실패: ${err.message}` }));
+                });
+
+                geminiReq.write(apiReqBody);
+                geminiReq.end();
+
+            } catch (err) {
+                console.error('Summarize error:', err);
+                res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: err.message }));
+            }
         });
         return;
     }

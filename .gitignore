@@ -3,3 +3,6 @@ scratch/
 node_modules/
 .gemini/
 *.log
+
+.vercel
+.env
