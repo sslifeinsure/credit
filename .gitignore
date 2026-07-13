@@ -1,0 +1,5 @@
+.superpowers/
+scratch/
+node_modules/
+.gemini/
+*.log
