@@ -202,7 +202,7 @@ const server = http.createServer((req, res) => {
                 stockCode: found.stockCode
             }));
         } else {
-            console.log(`[Search] NOT FOUND for "${cleanName}"`);
+            console.log(`[Search] NOT FOUND for "${rawClean}"`);
             res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ error: `Company not found: ${companyName}` }));
         }
