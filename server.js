@@ -422,7 +422,7 @@ const server = http.createServer((req, res) => {
                 }
 
                 const parsed = JSON.parse(body || '{}');
-                const { name, sector, opinion } = parsed;
+                const { name, sector, opinion, icr, ocf, daysCurrent, daysPrior, daysAR, daysAP, daysCCC, cccDiff } = parsed;
                 if (!name) {
                     res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
                     res.end(JSON.stringify({ error: 'name parameter is required' }));
@@ -437,15 +437,24 @@ const server = http.createServer((req, res) => {
 - 업종: ${sector}
 - 기본 신용 의견: ${opinion}
 
+[추출된 핵심 재무/유동성 지표]
+- 이자보상배율(ICR): ${icr}배 (1.0배 미만 시 자체적 이자 상환 불가능 상태)
+- 영업현금흐름(OCF): ${ocf ? (ocf / 100000000).toFixed(2) : 0}억 원 (장부상 이익과 실질 현금 유입 간의 괴리 분석에 활용)
+- 재고 회전기일: ${daysCurrent}일 (전년동기 ${daysPrior}일)
+- 매출채권 회전기일: ${daysAR || 0}일
+- 매입채무 회전기일: ${daysAP || 0}일
+- 최종 현금회전주기(CCC): ${daysCCC || 0}일 (전년동기 대비 변동: ${cccDiff >= 0 ? '+' : ''}${cccDiff || 0}일)
+
 [작성 가이드라인 - 필독 및 준수]
 1. 리포트 하단에 들어갈 실시간 분석 정보이므로 전문적이고 분석적인 톤앤매너를 유지해 주세요. (경어체로 작성하되 단락 구분을 명확히 해 주십시오.)
-2. 본문 분석 내용 내에 아래의 **5가지 핵심 리스크 단어**를 띄어쓰기 없이 정확한 형태로 반드시 1회 이상 포함시켜 설명해 주십시오. (기업 실적이 개선 중이더라도 '실적 저하 징후 없음', '영업이익 하락 방어 성공' 등의 맥락으로 단어들을 명확히 출현시켜야 합니다.)
+2. 30년 경력의 심사팀장 시각에서, 추출된 이자보상배율(ICR)과 영업현금흐름(OCF) 부호, 그리고 현금회전주기(CCC)의 악화 여부를 토대로 동사의 단기 결제 유동성 위험 및 실질 수익 잠식 리스크를 날카롭게 진단해 주십시오.
+3. 본문 분석 내용 내에 아래의 **5가지 핵심 리스크 단어**를 띄어쓰기 없이 정확한 형태로 반드시 1회 이상 포함시켜 설명해 주십시오. (기업 실적이 개선 중이더라도 '실적 저하 징후 없음', '영업이익 하락 방어 성공' 등의 맥락으로 단어들을 명확히 출현시켜야 합니다.)
    - **실적 저하**
    - **매출하락**
    - **영업이익 하락**
    - **마진 스프레드 하락**
    - **중국 제고 증가** ('중국 제고 증가(재고 증가)'와 같이 작성하여 '중국 제고 증가'라는 형태를 반드시 텍스트에 남겨 주십시오.)
-3. 가독성을 위해 문단을 나누고 깔끔하게 작성해 주세요. (마크다운 포맷 대신 줄바꿈을 포함한 일반 텍스트 포맷으로 전달해 주십시오.)`;
+4. 가독성을 위해 문단을 나누고 깔끔하게 작성해 주세요. (마크다운 포맷 대신 줄바꿈을 포함한 일반 텍스트 포맷으로 전달해 주십시오.)`;
 
                 const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`;
                 const apiReqBody = JSON.stringify({

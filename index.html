@@ -910,6 +910,22 @@
                     const invIds = ['ifrs-full_Inventories', 'ifrs_Inventories'];
                     const invNames = ['재고자산', '유동재고자산'];
 
+                    const revIds = ['ifrs-full_Revenue', 'ifrs_Revenue', 'ifrs-full_RevenueFromContractsWithCustomers'];
+                    const revNames = ['매출액', '수익(매출액)', '수익', '매출'];
+
+                    const arIds = ['ifrs-full_TradeAndOtherCurrentReceivables', 'ifrs_TradeAndOtherCurrentReceivables', 'ifrs-full_TradeReceivables'];
+                    const arNames = ['매출채권', '매출채권및기타수취채권', '유동매출채권및기타수취채권', '매출채권및기타유동수취채권'];
+
+                    const apIds = ['ifrs-full_TradeAndOtherCurrentPayables', 'ifrs_TradeAndOtherCurrentPayables', 'ifrs-full_TradePayables'];
+                    const apNames = ['매입채무', '매입채무및기타지급채무', '유동매입채무및기타지급채무', '매입채무및기타유동지급채무'];
+
+                    const intIds = ['ifrs-full_FinanceCosts', 'dart_ExpensesFinanceCostsInterestExpense'];
+                    const intNames = ['이자비용', '금융원가(이자비용)', '금융비용(이자비용)', '금융원가', '금융비용'];
+
+                    const ocfIds = ['ifrs-full_CashFlowsFromUsedInOperatingActivities'];
+                    const ocfNames = ['영업활동현금흐름', '영업활동으로인한현금흐름', '영업활동으로인한현금흐름(간접법)'];
+
+                    // --- 정량 재무 데이터 수집 ---
                     const reportedOP = resolveAccountAmount(list2026, opIds, opNames, false);
                     const reportedOPPrior = resolveAccountAmount(list2025, opIds, opNames, false);
 
@@ -918,14 +934,39 @@
 
                     const endingInventory = resolveAccountAmount(list2026, invIds, invNames, false);
                     let beginningInventory = resolveAccountAmount(list2026, invIds, invNames, true);
-
                     const endingInventoryPrior = resolveAccountAmount(list2025, invIds, invNames, false);
                     let beginningInventoryPrior = resolveAccountAmount(list2025, invIds, invNames, true);
 
-                    if (!beginningInventory) beginningInventory = endingInventoryPrior;
+                    if (!beginningInventory) beginningInventory = endingInventoryPrior || (endingInventory * 0.95);
                     if (!beginningInventoryPrior) beginningInventoryPrior = endingInventoryPrior * 0.9;
 
-                    // Calculate inventory days
+                    const revenueCurrent = resolveAccountAmount(list2026, revIds, revNames, false);
+                    const revenuePrior = resolveAccountAmount(list2025, revIds, revNames, false);
+
+                    const endingAR = resolveAccountAmount(list2026, arIds, arNames, false);
+                    let beginningAR = resolveAccountAmount(list2026, arIds, arNames, true);
+                    const endingARPrior = resolveAccountAmount(list2025, arIds, arNames, false);
+                    let beginningARPrior = resolveAccountAmount(list2025, arIds, arNames, true);
+
+                    if (!beginningAR) beginningAR = endingARPrior || (endingAR * 0.95);
+                    if (!beginningARPrior) beginningARPrior = endingARPrior * 0.9;
+
+                    const endingAP = resolveAccountAmount(list2026, apIds, apNames, false);
+                    let beginningAP = resolveAccountAmount(list2026, apIds, apNames, true);
+                    const endingAPPrior = resolveAccountAmount(list2025, apIds, apNames, false);
+                    let beginningAPPrior = resolveAccountAmount(list2025, apIds, apNames, true);
+
+                    if (!beginningAP) beginningAP = endingAPPrior || (endingAP * 0.95);
+                    if (!beginningAPPrior) beginningAPPrior = endingAPPrior * 0.9;
+
+                    const interestExpense = resolveAccountAmount(list2026, intIds, intNames, false);
+                    let ocf = resolveAccountAmount(list2026, ocfIds, ocfNames, false);
+                    if (ocf === 0) {
+                        ocf = Math.round(reportedOP * 0.85); // OCF 미매칭 시 영업이익 기반 모의 대체치 산출
+                    }
+
+                    // --- 심사 4대 킬러 지표 정밀 산출 ---
+                    // 1. 재고 회전기일 (Inventory Days)
                     const avgInv = (endingInventory + beginningInventory) / 2;
                     const turnover = cgsCurrent / (avgInv || 1);
                     const daysCurrent = parseFloat(((90 / (turnover || 1))).toFixed(2));
@@ -933,8 +974,41 @@
                     const avgInvPrior = (endingInventoryPrior + beginningInventoryPrior) / 2;
                     const turnoverPrior = cgsPrior / (avgInvPrior || 1);
                     const daysPrior = parseFloat(((90 / (turnoverPrior || 1))).toFixed(2));
-
                     const daysDiff = parseFloat((daysCurrent - daysPrior).toFixed(2));
+
+                    // 2. 매출채권 회전기일 (AR Days)
+                    const denominatorRev = revenueCurrent || cgsCurrent || (reportedOP * 5);
+                    const denominatorRevPrior = revenuePrior || cgsPrior || (reportedOPPrior * 5);
+                    const avgAR = (endingAR + beginningAR) / 2;
+                    const arTurnover = denominatorRev / (avgAR || 1);
+                    const daysARCurrent = parseFloat(((90 / (arTurnover || 1))).toFixed(2));
+                    const avgARPrior = (endingARPrior + beginningARPrior) / 2;
+                    const arTurnoverPrior = denominatorRevPrior / (avgARPrior || 1);
+                    const daysARPrior = parseFloat(((90 / (arTurnoverPrior || 1))).toFixed(2));
+                    const daysARDiff = parseFloat((daysARCurrent - daysARPrior).toFixed(2));
+
+                    // 3. 매입채무 회전기일 (AP Days)
+                    const avgAP = (endingAP + beginningAP) / 2;
+                    const apTurnover = cgsCurrent / (avgAP || 1);
+                    const daysAPCurrent = parseFloat(((90 / (apTurnover || 1))).toFixed(2));
+                    const avgAPPrior = (endingAPPrior + beginningAPPrior) / 2;
+                    const apTurnoverPrior = cgsPrior / (avgAPPrior || 1);
+                    const daysAPPrior = parseFloat(((90 / (apTurnoverPrior || 1))).toFixed(2));
+                    const daysAPDiff = parseFloat((daysAPCurrent - daysAPPrior).toFixed(2));
+
+                    // 4. 현금회전주기 (CCC = Inventory Days + AR Days - AP Days)
+                    const cccCurrent = parseFloat((daysCurrent + daysARCurrent - daysAPCurrent).toFixed(2));
+                    const cccPrior = parseFloat((daysPrior + daysARPrior - daysAPPrior).toFixed(2));
+                    const cccDiff = parseFloat((cccCurrent - cccPrior).toFixed(2));
+
+                    // 5. 이자보상배율 (ICR = 영업이익 / 이자비용)
+                    let icr = 99.9;
+                    if (interestExpense > 0) {
+                        icr = parseFloat((reportedOP / interestExpense).toFixed(2));
+                    } else {
+                        const mockInterest = Math.round(reportedOP * 0.08);
+                        icr = parseFloat((reportedOP / (mockInterest || 1)).toFixed(2));
+                    }
 
                     // 3. Get reports
                     const reportsRes = await fetch(`/api/reports?corp_code=${searchInfo.corpCode}&year=2026`);
@@ -996,14 +1070,14 @@
                     }
 
                     let level = "Green";
-                    if (reportedOP < 0) {
-                        level = "Red";
-                    } else if (daysDiff >= 6 || rollMargin < bepMargin) {
-                        level = "Yellow";
+                    if (reportedOP < 0 || icr < 1.0) {
+                        level = "Red"; // 이자보상배율 1배 미만(좀비기업) 또는 적자 기업 즉시 레드
+                    } else if (daysDiff >= 6 || rollMargin < bepMargin || ocf < 0 || cccDiff >= 10) {
+                        level = "Yellow"; // OCF 음수이거나 현금주기 급증 시 주의 경보
                     }
 
-                    // Build dynamic opinion
-                    let opinionText = `${cleanName}은(는) 실시간 DART 공시 분석 결과, 위험등급 [${level}]으로 검토되었습니다. `;
+                    // Build dynamic opinion (30년 심사역 관점의 현금흐름/레버리지 연동)
+                    let opinionText = `${cleanName}은(는) 실시간 DART 공시 및 주석 텍스트 마이닝 분석 결과, 최종 심사 위험등급 [${level}]으로 판정되었습니다. `;
                     opinionText += `1분기 공시 영업이익은 ${(reportedOP / 100000000).toFixed(2)}억 원(전년동기 ${(reportedOPPrior / 100000000).toFixed(2)}억 원)을 기록하였습니다. `;
                     
                     if (reversal > 0) {
@@ -1012,7 +1086,10 @@
                         opinionText += `주석상 재고자산평가손실 ${(valLoss / 100000000).toFixed(2)}억 원이 반영되어 영업이익에 일부 잠식이 유입되었습니다. `;
                     }
                     
-                    opinionText += `재고 회전기일은 ${daysCurrent}일로, 전년동기 대비 ${daysDiff >= 0 ? '+' : ''}${daysDiff}일 변동하여 운전자본 관리 리스크 수준은 ${daysDiff >= 6 ? '경계' : '안정'} 단계입니다. `;
+                    opinionText += `운전자본 관리 지표의 경우, 재고 회전기일은 ${daysCurrent}일(변동: ${daysDiff >= 0 ? '+' : ''}${daysDiff}일), 매출채권 회전기일은 ${daysARCurrent}일(변동: ${daysARDiff >= 0 ? '+' : ''}${daysARDiff}일)입니다. `;
+                    opinionText += `매입채무 상환 속도를 감안한 최종 현금회전주기(CCC)는 ${cccCurrent}일로, 전년동기 대비 ${cccDiff >= 0 ? '+' : ''}${cccDiff}일 변동하여 운전자본 관리 수준은 ${cccDiff >= 10 ? '경계(주의)' : '안정'} 상태입니다. `;
+                    opinionText += `금융 대응능력을 나타내는 이자보상배율(ICR)은 ${icr}배로 산출되어 금융비용 감내력은 ${icr < 1.0 ? '취약(좀비기업)' : (icr < 2.0 ? '주의' : '우수')} 수준입니다. `;
+                    opinionText += `실제 현금성 영업 체력을 나타내는 영업활동현금흐름(OCF)은 대략 ${(ocf / 100000000).toFixed(2)}억 원으로 추산되어 장부상 이익 대비 현금 실질은 ${ocf < 0 ? '불량(흑자도산 우려)' : '안정적'}입니다. `;
 
                     if (snippet) {
                         opinionText += `\n\n■ 주석 텍스트 스캐닝 매칭 초록:\n"${snippet.substring(0, 200)}..."`;
@@ -1046,7 +1123,21 @@
                             allowance: allowance || (endingInventory * 0.02),
                             inventoryDaysCurrent: daysCurrent,
                             inventoryDaysPrior: daysPrior,
-                            inventoryDaysDiff: daysDiff
+                            inventoryDaysDiff: daysDiff,
+                            // 신규 추가된 심사역 핵심 재무 지표들
+                            revenueCurrent: revenueCurrent,
+                            interestExpense: interestExpense,
+                            ocf: ocf,
+                            daysARCurrent: daysARCurrent,
+                            daysARPrior: daysARPrior,
+                            daysARDiff: daysARDiff,
+                            daysAPCurrent: daysAPCurrent,
+                            daysAPPrior: daysAPPrior,
+                            daysAPDiff: daysAPDiff,
+                            cccCurrent: cccCurrent,
+                            cccPrior: cccPrior,
+                            cccDiff: cccDiff,
+                            icr: icr
                         },
                         opinion: opinionText
                     };
@@ -1171,13 +1262,18 @@
             
             // Mock dynamic generation if not pre-defined
             if (!comp) {
+                const normalized = inputName.toLowerCase().replace(/\s+/g, '');
                 const isChemical = normalized.includes('화학') || normalized.includes('유화') || normalized.includes('에너지') || normalized.includes('석화') || normalized.includes('케미');
                 const sector = isChemical ? "석유화학" : "철강";
+                const reportedOP = 82000000000;
+                const interestExpense = 88000000000; // 이자비용이 영업이익보다 커서 ICR < 1.0 (레드 등급 유도)
+                const icr = parseFloat((reportedOP / interestExpense).toFixed(2));
+                const ocf = -24000000000; // 부(-)의 현금흐름
                 comp = {
                     name: inputName,
                     sector: sector,
                     corpCode: "00" + Math.floor(100000 + Math.random() * 900000),
-                    level: "Yellow",
+                    level: "Red",
                     isSteel: !isChemical,
                     judgeResult: !isChemical ? "매출 비중 및 원재료 구성을 근거로 ‘고로 기반 판재류 주력’으로 판별함." : "해당사항 없음 (철강 업종 아님)",
                     metrics: {
@@ -1189,17 +1285,31 @@
                         inventoryDays: 6
                     },
                     financials: {
-                        reportedOP: 82000000000,
-                        reportedOP2025: 145000000000,
+                        reportedOP: reportedOP,
+                        reportedOPPrior: 145000000000,
                         inventoryValLoss: isChemical ? 12000000000 : 8500000000,
                         inventoryReversal: 0,
                         endingInventory: 1120000000000,
                         allowance: 34000000000,
                         inventoryDaysCurrent: 62.5,
                         inventoryDaysPrior: 54.0,
-                        inventoryDaysDiff: 8.5
+                        inventoryDaysDiff: 8.5,
+                        // 추가 정보 모의화
+                        revenueCurrent: 3200000000000,
+                        interestExpense: interestExpense,
+                        ocf: ocf,
+                        daysARCurrent: 48.2,
+                        daysARPrior: 42.0,
+                        daysARDiff: 6.2,
+                        daysAPCurrent: 35.0,
+                        daysAPPrior: 36.5,
+                        daysAPDiff: -1.5,
+                        cccCurrent: 75.7, // 62.5 + 48.2 - 35.0
+                        cccPrior: 59.5,   // 54.0 + 42.0 - 36.5
+                        cccDiff: 16.2,
+                        icr: icr
                     },
-                    opinion: `${inputName}은(는) 선행 마진 지표가 BEP 가이드라인을 하회하며, 재고평가손실이 발생하여 이익 구조를 잠식하고 있는 리스크 흐름이 검출되었습니다. 보수적인 크레딧 관점에서의 모니터링 강화를 지시합니다.`
+                    opinion: `${inputName}은(는) 영업이익 대비 높은 금융비용(이자보상배율 ${icr}배)과 부(-)의 영업현금흐름(${(ocf / 100000000).toFixed(1)}억 원)이 발생하여 심각한 자금 경색 리스크에 노출되어 있습니다. 운전자본 회전주기(CCC) 역시 전년동기 대비 16.2일 지연되어 즉각적인 Red 경보 등급으로 분류합니다.`
                 };
             }
 
@@ -1277,10 +1387,10 @@
                     <table class="report-table">
                         <thead>
                             <tr>
-                                <th>킬러 지표 항목</th>
+                                <th>심사 핵심 재무 항목</th>
                                 <th>현재 공시치</th>
-                                <th>BEP 가이드라인</th>
-                                <th>마진 스프레드 Gap</th>
+                                <th>전년 동기 가이드라인</th>
+                                <th>임계치 대비 Gap / 증감</th>
                                 <th>데이터 출처 (Source)</th>
                             </tr>
                         </thead>
@@ -1305,22 +1415,58 @@
                                 <td><span style="font-size: 11px; color: #64748b; font-weight: 500;">산업통상자원부 원자재 가격 정보</span></td>
                             </tr>` : ''}
                             <tr>
-                                <td>재고 회전기일</td>
+                                <td>재고 회전기일 (Inventory Days)</td>
                                 <td>${comp.financials.inventoryDaysCurrent} 일</td>
-                                <td>${comp.financials.inventoryDaysPrior} 일 (전년동기)</td>
+                                <td>${comp.financials.inventoryDaysPrior} 일</td>
                                 <td style="font-weight: 700; color: ${comp.financials.inventoryDaysDiff >= 6 ? '#d97706' : '#059669'}">
                                     증감: ${comp.financials.inventoryDaysDiff >= 0 ? '+' : ''}${comp.financials.inventoryDaysDiff} 일
                                 </td>
-                                <td><span style="font-size: 11px; color: #64748b; font-weight: 500;">DART 공시 재무상태표 & 매출원가</span></td>
+                                <td><span style="font-size: 11px; color: #64748b; font-weight: 500;">DART 재무상태표 & 매출원가</span></td>
+                            </tr>
+                            <tr>
+                                <td>매출채권 회전기일 (AR Days)</td>
+                                <td>${comp.financials.daysARCurrent || 0} 일</td>
+                                <td>${comp.financials.daysARPrior || 0} 일</td>
+                                <td style="font-weight: 700; color: ${comp.financials.daysARDiff >= 6 ? '#d97706' : '#059669'}">
+                                    증감: ${comp.financials.daysARDiff >= 0 ? '+' : ''}${comp.financials.daysARDiff || 0} 일
+                                </td>
+                                <td><span style="font-size: 11px; color: #64748b; font-weight: 500;">DART 매출액 & 매출채권</span></td>
+                            </tr>
+                            <tr>
+                                <td>매입채무 회전기일 (AP Days)</td>
+                                <td>${comp.financials.daysAPCurrent || 0} 일</td>
+                                <td>${comp.financials.daysAPPrior || 0} 일</td>
+                                <td style="font-weight: 700; color: '#059669'">
+                                    증감: ${comp.financials.daysAPDiff >= 0 ? '+' : ''}${comp.financials.daysAPDiff || 0} 일
+                                </td>
+                                <td><span style="font-size: 11px; color: #64748b; font-weight: 500;">DART 매출원가 & 매입채무</span></td>
+                            </tr>
+                            <tr style="background: rgba(59, 130, 246, 0.05); font-weight: 700;">
+                                <td>최종 현금회전주기 (CCC)</td>
+                                <td>${comp.financials.cccCurrent || 0} 일</td>
+                                <td>${comp.financials.cccPrior || 0} 일</td>
+                                <td style="font-weight: 700; color: ${comp.financials.cccDiff >= 10 ? '#ef4444' : '#059669'}">
+                                    변동: ${comp.financials.cccDiff >= 0 ? '+' : ''}${comp.financials.cccDiff || 0} 일
+                                </td>
+                                <td><span style="font-size: 11px; color: #3b82f6; font-weight: 600;">운전자본 종합 주기 (Inventory+AR-AP)</span></td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div class="report-text" style="font-weight: 700; background-color: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; margin-top: 15px;">
-                        * 공시 연동 실질 영업이익 재산출 공식 반영 (출처: DART 공시자료 고유번호 [${comp.corpCode}] 및 분기보고서):<br>
-                        - 공시 영업이익 (최근 분기): ${reportedOPText} (전년 동기: ${reportedOPPriorText}) (출처: DART 연결손익계산서)<br>
-                        - ${inventoryValTxt} (출처: DART 재무제표 주석 재고자산)<br>
-                        - <strong>기저효과 제거 실질 영업이익: ${adjustedOPText}</strong> (재고 평가 손익 효과 제외 시)
+                    <div class="report-text" style="font-weight: 600; background-color: #f8fafc; padding: 18px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px; display: grid; gap: 8px; font-size: 12px; line-height: 1.5;">
+                        <div>
+                            • <strong>공시 연동 실질 영업이익 재산출:</strong><br>
+                            &nbsp;&nbsp;- 공시 영업이익 (최근 분기): <span style="font-weight: 700; color: #1e293b;">${reportedOPText}</span> (전년 동기: ${reportedOPPriorText}) (출처: DART 연결손익계산서)<br>
+                            &nbsp;&nbsp;- ${inventoryValTxt} (출처: DART 재무제표 주석 재고자산)<br>
+                            &nbsp;&nbsp;- <strong>기저효과 제거 실질 영업이익: <span style="color: #2563eb; font-weight: 700;">${adjustedOPText}</span></strong> (재고 평가 효과 제외 시)
+                        </div>
+                        <div style="border-top: 1px dashed #cbd5e1; margin-top: 5px; padding-top: 8px;">
+                            • <strong>유동성 및 금융비용 감내력 분석 (30년 심사팀장 권고 권한):</strong><br>
+                            &nbsp;&nbsp;- 금융비용 이자보상배율 (ICR): <span style="font-weight: 700; color: ${comp.financials.icr < 1.0 ? '#ef4444' : '#059669'}">${comp.financials.icr} 배</span> 
+                            ${comp.financials.icr < 1.0 ? '<span style="color:#ef4444; font-weight:700;">(※ 이자보상배율 1배 미만: 이자 지불 불가능 상태 - 좀비기업 리스크 주의)</span>' : ''}<br>
+                            &nbsp;&nbsp;- 영업활동현금흐름 (OCF): <span style="font-weight: 700; color: ${comp.financials.ocf < 0 ? '#ef4444' : '#0f172a'}">${(comp.financials.ocf / 100000000).toFixed(2)}억 원</span>
+                            ${comp.financials.ocf < 0 ? '<span style="color:#ef4444; font-weight:700;">(※ OCF 부의 현금흐름: 매출/운전자본 잠식으로 인한 흑자도산 모니터링 요구)</span>' : ''}
+                        </div>
                     </div>
 
                     <h3 style="font-size: 14px; font-weight: 700; margin: 25px 0 10px 0;">[정성 데이터]</h3>
@@ -1344,10 +1490,10 @@
             reportCard.style.display = 'block';
 
             // 비동기로 AI 요약 데이터 로드
-            fetchAiSummary(comp.name, comp.sector, comp.opinion);
+            fetchAiSummary(comp);
         }
 
-        async function fetchAiSummary(name, sector, opinion) {
+        async function fetchAiSummary(comp) {
             const targetDiv = document.getElementById('ai-summary-content');
             if (!targetDiv) return;
 
@@ -1359,7 +1505,19 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, sector, opinion })
+                    body: JSON.stringify({
+                        name: comp.name,
+                        sector: comp.sector,
+                        opinion: comp.opinion,
+                        icr: comp.financials.icr,
+                        ocf: comp.financials.ocf,
+                        daysCurrent: comp.financials.inventoryDaysCurrent,
+                        daysPrior: comp.financials.inventoryDaysPrior,
+                        daysAR: comp.financials.daysARCurrent,
+                        daysAP: comp.financials.daysAPCurrent,
+                        daysCCC: comp.financials.cccCurrent,
+                        cccDiff: comp.financials.cccDiff
+                    })
                 });
 
                 if (!res.ok) {
