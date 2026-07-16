@@ -1571,9 +1571,37 @@
                 }
 
                 const data = await res.json();
-                
-                // 줄바꿈이 있는 텍스트로 자연스럽게 대입
-                targetDiv.innerHTML = data.summary || '생성된 분석 내용이 없습니다.';
+                const summary = data.summary;
+
+                if (summary && summary.final_qualitative_assessment) {
+                    const qual = summary.final_qualitative_assessment;
+                    const trace = summary.analysis_trace || {};
+                    
+                    let html = `
+                        <div style="font-weight: 800; font-size: 13px; margin-bottom: 12px; color: #1e3a8a; border-bottom: 2px solid rgba(59, 130, 246, 0.15); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            ${qual.title || 'AI 심사역 실시간 정성 분석 보고서'}
+                        </div>
+                        <div style="font-size: 11px; color: #475569; background: rgba(241, 245, 249, 0.6); padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #94a3b8; line-height: 1.45;">
+                            <strong>🔍 심사역 추론 추적 (PEVC Trace):</strong><br>
+                            • 1단계 지표 추출: ${trace.step_1_metric_extraction || 'N/A'}<br>
+                            • 2단계 논리 검증: ${trace.step_2_logical_verification || 'N/A'}
+                        </div>
+                    `;
+
+                    if (qual.content_paragraphs && Array.isArray(qual.content_paragraphs)) {
+                        qual.content_paragraphs.forEach((pText) => {
+                            html += `
+                                <p style="margin-bottom: 12px; font-size: 12px; line-height: 1.65; text-align: justify; color: #334155;">
+                                    ${pText}
+                                </p>
+                            `;
+                        });
+                    }
+
+                    targetDiv.innerHTML = html;
+                } else {
+                    targetDiv.innerHTML = typeof data.summary === 'string' ? data.summary : '생성된 분석 결과의 구조가 적합하지 않습니다.';
+                }
             } catch (err) {
                 console.error('AI 요약 실패:', err);
                 targetDiv.innerHTML = `<span style="color: #dc2626; font-weight: 500;">[AI 분석 실패] ${err.message}.<br><span style="font-size: 11px; color: #64748b;">(DART API 연동을 위해 로컬 개발 서버 node server.js를 구동하고 .env 파일에 GEMINI_API_KEY를 설정하셔야 합니다.)</span></span>`;
