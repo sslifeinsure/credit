@@ -1435,12 +1435,19 @@
 
             // 주석 마이닝 항목 (실제 데이터만 사용)
             let fnItem1Title, fnItem1Desc;
+            const opAmount = (comp.financials.reportedOP / 100000000).toFixed(1);
             if (comp.financials.inventoryReversal > 0) {
+                const valAmount = (comp.financials.inventoryReversal / 100000000).toFixed(1);
+                const denom = Math.abs(comp.financials.reportedOP) || 1;
+                const ratio = ((comp.financials.inventoryReversal / denom) * 100).toFixed(1);
                 fnItem1Title = '재고자산평가손실환입 발생 (기저효과)';
-                fnItem1Desc = `재고자산평가손실환입 ${(comp.financials.inventoryReversal / 100000000).toFixed(1)}억 원이 영업이익에 기저효과를 부여함.`;
+                fnItem1Desc = `재고자산평가손실환입 ${valAmount}억 원이 발생하여 당기 영업이익 ${opAmount}억 원의 ${ratio}%에 기저효과를 부여함.`;
             } else {
+                const valAmount = (comp.financials.inventoryValLoss / 100000000).toFixed(1);
+                const denom = Math.abs(comp.financials.reportedOP) || 1;
+                const ratio = ((comp.financials.inventoryValLoss / denom) * 100).toFixed(1);
                 fnItem1Title = '재고자산평가손실 발생';
-                fnItem1Desc = `재고자산평가손실 ${(comp.financials.inventoryValLoss / 100000000).toFixed(1)}억 원이 영업이익을 잠식함.`;
+                fnItem1Desc = `재고자산평가손실 ${valAmount}억 원이 발생하여 당기 영업이익 ${opAmount}억 원의 ${ratio}%를 잠식함.`;
             }
 
             const fnItem2Title = '현금회전주기(CCC) 변동';
