@@ -494,9 +494,10 @@ JSON 스키마 템플릿:
                 };
 
                 const geminiReq = https.request(options, (geminiRes) => {
+                    geminiRes.setEncoding('utf8');
                     let resBody = '';
                     geminiRes.on('data', chunk => {
-                        resBody += chunk.toString();
+                        resBody += chunk;
                     });
                     geminiRes.on('end', () => {
                         try {

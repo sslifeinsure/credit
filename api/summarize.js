@@ -114,6 +114,7 @@ JSON 스키마 템플릿:
 
         const apiResult = await new Promise((resolve, reject) => {
             const apiReq = https.request(options, (apiRes) => {
+                apiRes.setEncoding('utf8');
                 let resBody = '';
                 apiRes.on('data', chunk => resBody += chunk);
                 apiRes.on('end', () => {
