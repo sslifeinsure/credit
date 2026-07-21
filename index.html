@@ -1491,21 +1491,75 @@
                     </div>
                 </div>
 
-                <!-- Section ③ 재무지표 — 근거 보조, 압축 -->
-                <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 12px; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 20px;">③ 재무지표 — 근거 보조, 압축</div>
+                <!-- Section ③ 재무지표 — DART API 데이터 기반 -->
+                <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 12px; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 20px;">③ 재무지표 — DART 공시 데이터 기반</div>
 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 30px;">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px;">
+                    <!-- 영업이익 (당기) -->
                     <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 손익계산서</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">영업이익 (당기)</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.reportedOP < 0 ? '#ef4444' : '#0f172a'};">${(comp.financials.reportedOP / 100000000).toFixed(0)}억</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">전기: ${(comp.financials.reportedOPPrior / 100000000).toFixed(0)}억</div>
+                    </div>
+                    <!-- 이자보상배율 (ICR) -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 손익계산서</div>
                         <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">이자보상배율 (ICR)</div>
                         <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.icr < 1.0 ? '#ef4444' : '#0f172a'};">${comp.financials.icr}배</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">= 영업이익 ÷ 이자비용</div>
                     </div>
+                    <!-- 영업활동현금흐름 (OCF) -->
                     <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 현금흐름표</div>
                         <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">영업활동현금흐름 (OCF)</div>
                         <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.ocf < 0 ? '#ef4444' : '#0f172a'};">${(comp.financials.ocf / 100000000).toFixed(0)}억</div>
                     </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px;">
+                    <!-- 재고 회전기일 -->
                     <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 재무상태표</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">재고 회전기일</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.inventoryDaysDiff >= 6 ? '#ef4444' : '#0f172a'};">${comp.financials.inventoryDaysCurrent}일</div>
+                        <div style="font-size: 11px; color: ${comp.financials.inventoryDaysDiff >= 0 ? '#ef4444' : '#059669'}; font-weight: 600; margin-top: 4px;">전기 대비 ${comp.financials.inventoryDaysDiff >= 0 ? '+' : ''}${comp.financials.inventoryDaysDiff}일</div>
+                    </div>
+                    <!-- 매출채권 회전기일 -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 재무상태표</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">매출채권 회전기일</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.daysARDiff >= 6 ? '#ef4444' : '#0f172a'};">${comp.financials.daysARCurrent}일</div>
+                        <div style="font-size: 11px; color: ${comp.financials.daysARDiff >= 0 ? '#ef4444' : '#059669'}; font-weight: 600; margin-top: 4px;">전기 대비 ${comp.financials.daysARDiff >= 0 ? '+' : ''}${comp.financials.daysARDiff}일</div>
+                    </div>
+                    <!-- 매입채무 회전기일 -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 재무상태표</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">매입채무 회전기일</div>
+                        <div style="font-size: 22px; font-weight: 900; color: #0f172a;">${comp.financials.daysAPCurrent}일</div>
+                        <div style="font-size: 11px; color: ${comp.financials.daysAPDiff <= 0 ? '#ef4444' : '#059669'}; font-weight: 600; margin-top: 4px;">전기 대비 ${comp.financials.daysAPDiff >= 0 ? '+' : ''}${comp.financials.daysAPDiff}일</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 30px;">
+                    <!-- 현금회전주기 (CCC) -->
+                    <div style="background: ${comp.financials.cccDiff >= 10 ? '#fef2f2' : '#f8fafc'}; border-radius: 12px; padding: 16px; border: 1px solid ${comp.financials.cccDiff >= 10 ? '#fecaca' : '#e2e8f0'};">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">산출 지표</div>
                         <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">현금회전주기 (CCC)</div>
                         <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.cccDiff >= 10 ? '#ef4444' : '#0f172a'};">${comp.financials.cccCurrent}일</div>
+                        <div style="font-size: 11px; color: ${comp.financials.cccDiff >= 0 ? '#ef4444' : '#059669'}; font-weight: 600; margin-top: 4px;">전기 대비 ${comp.financials.cccDiff >= 0 ? '+' : ''}${comp.financials.cccDiff}일</div>
+                    </div>
+                    <!-- 재고자산평가손실 -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 주석 재고자산</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">${comp.financials.inventoryReversal > 0 ? '재고평가손실환입' : '재고자산평가손실'}</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.inventoryReversal > 0 ? '#059669' : '#ef4444'};">${comp.financials.inventoryReversal > 0 ? (comp.financials.inventoryReversal / 100000000).toFixed(1) : (comp.financials.inventoryValLoss / 100000000).toFixed(1)}억</div>
+                    </div>
+                    <!-- 기말재고자산 -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 2px;">DART 재무상태표</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">기말재고자산</div>
+                        <div style="font-size: 22px; font-weight: 900; color: #0f172a;">${(comp.financials.endingInventory / 1000000000000).toFixed(2)}조</div>
                     </div>
                 </div>
 
