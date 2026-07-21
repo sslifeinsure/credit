@@ -1598,10 +1598,12 @@
                     </div>
                 </div>
 
+                ${comp.isSteel ? `
                 <div class="report-section">
                     <div class="report-section-title">■ 분석대상 기업이 철강업종일 경우 주력 부문 판결 결과</div>
-                    <div class="report-text" style="font-weight: 700;">${comp.isSteel ? comp.judgeResult : "해당사항 없음 (철강 업종 아님)"}</div>
+                    <div class="report-text" style="font-weight: 700;">${comp.judgeResult}</div>
                 </div>
+                ` : ''}
 
                 <div class="report-section">
                     <div class="report-section-title">■ 리스크 트리거 요인</div>
