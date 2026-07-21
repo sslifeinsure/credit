@@ -1389,113 +1389,57 @@
             let bepUnit = comp.sector === '에너지/정유' ? '$/BBL' : '$/TON';
             let formattedRollMargin = comp.sector === '에너지/정유' ? `$${comp.metrics.rollMargin}` : `$${comp.metrics.rollMargin.toLocaleString()}`;
 
-            // 1. Stock Code Mapping & Date
-            const stockMap = {
-                '롯데케미칼': '011170',
-                'POSCO홀딩스': '005490',
-                '현대제철': '004020',
-                'LG화학': '051910',
-                'S-Oil': '010950',
-                '한솔케미칼': '014680',
-                '금호석유': '011780',
-                '풍산': '103140',
-                '세아베스틸지주': '001430',
-                'HD현대오일뱅크': '004080'
-            };
-            const stockCodeText = stockMap[comp.name] || '011170';
+            // 날짜 포맷
             const today = new Date();
             const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-            // 2. Rating & Opinion Mapping by Level
-            let gradeLetter = 'BBB-';
-            let gradePrevSubtext = '직전 BBB ▼';
+            // 위험등급 색상 (기존 comp.level 기반)
             let gradeBgColor = '#fce8e6';
             let gradeBorderColor = '#fad2cf';
             let gradeTextColor = '#8c1d18';
-            let opinionHeaderTitle = '여신 심사의견: 조건부 부적격';
-            let opinionDetailSubtext = '차입금 만기 집중 + 계열 지급보증 확대. 담보 또는 한도 축소 조건 없이는 신규 익스포저 확대 비권고.';
-            let tagPillsHtml = `
-                <span style="background: #fce8e6; color: #a50e0e; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #fad2cf;">우발채무 급증</span>
-                <span style="background: #fef7e0; color: #b45309; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #fde047;">단기차입 의존</span>
-                <span style="background: #fff7ed; color: #c2410c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #ffedd5;">업황 하강</span>
-            `;
-
             if (comp.level === 'Yellow') {
-                gradeLetter = 'A-';
-                gradePrevSubtext = '직전 A0 ▼';
                 gradeBgColor = '#fef7e0';
                 gradeBorderColor = '#fde047';
                 gradeTextColor = '#b45309';
-                opinionHeaderTitle = '여신 심사의견: 관찰 요구 (보수적 승인)';
-                opinionDetailSubtext = '선행 마진 지표 BEP 하회 및 운전자본 회전 지연. 신규 한도 증액 시 원자재 스프레드 반등 모니터링 조건부 승인.';
-                tagPillsHtml = `
-                    <span style="background: #fef7e0; color: #b45309; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #fde047;">운전자본 적체</span>
-                    <span style="background: #fff7ed; color: #c2410c; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #ffedd5;">마진 BEP 하회</span>
-                    <span style="background: #f1f5f9; color: #475569; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #cbd5e1;">재고평가 영향</span>
-                `;
             } else if (comp.level === 'Green') {
-                gradeLetter = 'AA';
-                gradePrevSubtext = '직전 AA- ▲';
                 gradeBgColor = '#e6f4ea';
                 gradeBorderColor = '#a7f3d0';
                 gradeTextColor = '#137333';
-                opinionHeaderTitle = '여신 심사의견: 적격 (신용 우수)';
-                opinionDetailSubtext = '주요 영업 마진 BEP 상회 및 현금회전주기 양호. 단기 유동성 대응 능력 우수하여 신규 익스포저 승인 권고.';
-                tagPillsHtml = `
-                    <span style="background: #e6f4ea; color: #137333; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #a7f3d0;">마진 BEP 상회</span>
-                    <span style="background: #e6f4ea; color: #137333; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #a7f3d0;">현금회전 양호</span>
-                    <span style="background: #eff6ff; color: #1d4ed8; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid #bfdbfe;">유동성 우수</span>
-                `;
             }
 
-            // 3. Footnote Mining Section Items
-            let fnItem1Title = '타인을 위한 지급보증 1.2조 → 2.4조';
-            let fnItem1Desc = '주석 32. 우발부채 · 해외 계열 2개사 대상. 자기자본 대비 41%.';
-            let fnItem1Link = '원문 보기 · 2025 사업보고서 p.148';
-
-            let fnItem2Title = '담보제공 자산 비중 상승';
-            let fnItem2Desc = '주석 14. 유형자산 중 담보설정 비율 18% → 29%.';
-            let fnItem2Link = '원문 보기 · 2025 사업보고서 p.96';
-
-            if (comp.name !== '롯데케미칼') {
-                if (comp.financials.inventoryReversal > 0) {
-                    fnItem1Title = '재고자산평가손실환입 기저효과 발생';
-                    fnItem1Desc = `주석 32. 재고자산. 환입액 ${(comp.financials.inventoryReversal / 100000000).toFixed(1)}억 원 계상.`;
-                    fnItem1Link = '원문 보기 · 2026 1분기 보고서 주석';
-                } else {
-                    fnItem1Title = '재고자산평가손실 발생 손익 잠식';
-                    fnItem1Desc = `주석 32. 재고자산. 평가손실 ${(comp.financials.inventoryValLoss / 100000000).toFixed(1)}억 원 계상.`;
-                    fnItem1Link = '원문 보기 · 2026 1분기 보고서 주석';
-                }
-                fnItem2Title = '운전자본 회전주기(CCC) 변동 감지';
-                fnItem2Desc = `주석 09. 운전자본 관리. 최종 현금회전주기(CCC) ${comp.financials.cccCurrent || 70.9}일 (전년동기 대비 ${comp.financials.cccDiff >= 0 ? '+' : ''}${comp.financials.cccDiff || 10.5}일).`;
-                fnItem2Link = '원문 보기 · 2026 1분기 보고서 주석';
+            // 주석 마이닝 항목 (실제 데이터만 사용)
+            let fnItem1Title, fnItem1Desc;
+            if (comp.financials.inventoryReversal > 0) {
+                fnItem1Title = '재고자산평가손실환입 발생 (기저효과)';
+                fnItem1Desc = `재고자산평가손실환입 ${(comp.financials.inventoryReversal / 100000000).toFixed(1)}억 원이 영업이익에 기저효과를 부여함.`;
+            } else {
+                fnItem1Title = '재고자산평가손실 발생';
+                fnItem1Desc = `재고자산평가손실 ${(comp.financials.inventoryValLoss / 100000000).toFixed(1)}억 원이 영업이익을 잠식함.`;
             }
 
-            // 4. Financial Metrics Cards Values
-            const debtRatioMap = {
-                '롯데케미칼': '168%',
-                'POSCO홀딩스': '86%',
-                '현대제철': '104%',
-                'LG화학': '132%',
-                'S-Oil': '155%',
-                '한솔케미칼': '42%',
-                '금호석유': '38%',
-                '풍산': '98%'
-            };
-            const debtRatioText = debtRatioMap[comp.name] || '142%';
+            const fnItem2Title = '현금회전주기(CCC) 변동';
+            const fnItem2Desc = `최종 현금회전주기(CCC) ${comp.financials.cccCurrent}일 (전년동기 대비 ${comp.financials.cccDiff >= 0 ? '+' : ''}${comp.financials.cccDiff}일).`;
 
-            const shortTermDebtMap = {
-                '롯데케미칼': '3.8조',
-                'POSCO홀딩스': '4.2조',
-                '현대제철': '2.1조',
-                'LG화학': '5.6조',
-                'S-Oil': '2.8조',
-                '한솔케미칼': '0.3조',
-                '금호석유': '0.4조',
-                '풍산': '0.6조'
-            };
-            const shortTermDebtText = shortTermDebtMap[comp.name] || '1.8조';
+            // 리스크 태그 (실제 지표 기반으로 동적 생성)
+            let tagPills = [];
+            if (comp.metrics.rollMargin < comp.bep.rollMargin) {
+                tagPills.push(`<span style="background:${gradeBgColor}; color:${gradeTextColor}; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid ${gradeBorderColor};">마진 BEP 하회</span>`);
+            } else {
+                tagPills.push(`<span style="background:#e6f4ea; color:#137333; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #a7f3d0;">마진 BEP 상회</span>`);
+            }
+            if (comp.financials.inventoryDaysDiff >= 6) {
+                tagPills.push(`<span style="background:#fef7e0; color:#b45309; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #fde047;">재고기일 증가</span>`);
+            }
+            if (comp.financials.icr < 1.0) {
+                tagPills.push(`<span style="background:#fce8e6; color:#a50e0e; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #fad2cf;">ICR 1배 미만</span>`);
+            }
+            if (comp.financials.ocf < 0) {
+                tagPills.push(`<span style="background:#fce8e6; color:#a50e0e; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #fad2cf;">OCF 부(-)의 흐름</span>`);
+            }
+            if (comp.financials.cccDiff >= 10) {
+                tagPills.push(`<span style="background:#fff7ed; color:#c2410c; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #ffedd5;">CCC 악화</span>`);
+            }
+            const tagPillsHtml = tagPills.join('\n                            ');
 
             paper.innerHTML = `
                 <!-- Top Header Bar -->
@@ -1503,7 +1447,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-size: 18px;">🛡️</span>
                         <span style="font-size: 18px; font-weight: 800; color: #0f172a;">크레딧 심사 리포트</span>
-                        <span style="font-size: 14px; color: #64748b; font-weight: 500;">${comp.name} · ${stockCodeText}</span>
+                        <span style="font-size: 14px; color: #64748b; font-weight: 500;">${comp.name} · ${comp.sector}</span>
                     </div>
                     <div style="font-size: 13px; color: #94a3b8; font-weight: 500;">
                         ${todayDateStr} 기준
@@ -1513,41 +1457,37 @@
                 <!-- Section ① 결론 — 스크롤 없이 보이는 영역 -->
                 <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 10px;">① 결론 — 스크롤 없이 보이는 영역</div>
 
-                <div style="display: flex; gap: 24px; align-items: stretch; margin-bottom: 25px; background: #ffffff;">
-                    <!-- Left Box: 내부 심사등급 Card -->
+                <div style="display: flex; gap: 24px; align-items: stretch; margin-bottom: 25px;">
+                    <!-- Left Box: 위험등급 Card -->
                     <div style="width: 170px; min-width: 170px; background: ${gradeBgColor}; border: 1px solid ${gradeBorderColor}; border-radius: 14px; padding: 18px 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <div style="font-size: 12px; font-weight: 700; color: ${gradeTextColor}; margin-bottom: 4px;">내부 심사등급</div>
-                        <div style="font-size: 32px; font-weight: 900; color: ${gradeTextColor}; line-height: 1.1; margin: 4px 0;">${gradeLetter}</div>
-                        <div style="font-size: 12px; font-weight: 700; color: ${gradeTextColor}; opacity: 0.85; margin-top: 4px;">${gradePrevSubtext}</div>
+                        <div style="font-size: 12px; font-weight: 700; color: ${gradeTextColor}; margin-bottom: 4px;">위험등급</div>
+                        <div style="font-size: 32px; font-weight: 900; color: ${gradeTextColor}; line-height: 1.1; margin: 4px 0;">${comp.level}</div>
                     </div>
 
-                    <!-- Right Side: 여신 심사의견 & 상세 & 태그 -->
+                    <!-- Right Side: 기존 callout 경고 문구 & 리스크 태그 -->
                     <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                        <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">${opinionHeaderTitle}</h3>
-                        <p style="font-size: 13px; color: #475569; line-height: 1.55; margin-bottom: 14px;">${opinionDetailSubtext}</p>
-                        
+                        <div class="box-callout ${calloutClass}" style="margin: 0 0 12px 0;">
+                            ${calloutTxt}
+                        </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             ${tagPillsHtml}
                         </div>
                     </div>
                 </div>
 
-                <!-- Section ② 주석 마이닝 — 차별화 구간, 가장 넓게 -->
-                <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 12px; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 20px;">② 주석 마이닝 — 차별화 구간, 가장 넓게</div>
+                <!-- Section ② 주석 마이닝 — 차별화 구간 -->
+                <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 12px; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 20px;">② 주석 마이닝 — 차별화 구간</div>
 
                 <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 25px;">
-                    <!-- Footnote Item 1 -->
                     <div style="border-left: 4px solid #ea4335; padding-left: 14px;">
                         <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">${fnItem1Title}</div>
                         <div style="font-size: 13px; color: #475569; margin-bottom: 4px;">${fnItem1Desc}</div>
-                        <div style="font-size: 12px; color: #2563eb; font-weight: 500; cursor: pointer;">${fnItem1Link}</div>
+                        <div style="font-size: 12px; color: #2563eb; font-weight: 500;">출처: DART 재무제표 주석 재고자산</div>
                     </div>
-
-                    <!-- Footnote Item 2 -->
                     <div style="border-left: 4px solid #fbbc04; padding-left: 14px;">
                         <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">${fnItem2Title}</div>
                         <div style="font-size: 13px; color: #475569; margin-bottom: 4px;">${fnItem2Desc}</div>
-                        <div style="font-size: 12px; color: #2563eb; font-weight: 500; cursor: pointer;">${fnItem2Link}</div>
+                        <div style="font-size: 12px; color: #2563eb; font-weight: 500;">출처: DART 재무상태표 & 매출원가</div>
                     </div>
                 </div>
 
@@ -1555,25 +1495,17 @@
                 <div style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 12px; margin-top: 25px; border-top: 1px solid #f1f5f9; padding-top: 20px;">③ 재무지표 — 근거 보조, 압축</div>
 
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 30px;">
-                    <!-- Metric 1: 부채비율 -->
                     <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">부채비율</div>
-                        <div style="font-size: 22px; font-weight: 900; color: #0f172a;">${debtRatioText}</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">이자보상배율 (ICR)</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.icr < 1.0 ? '#ef4444' : '#0f172a'};">${comp.financials.icr}배</div>
                     </div>
-
-                    <!-- Metric 2: 이자보상배율 -->
-                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">이자보상배율</div>
-                            <div style="font-size: 22px; font-weight: 900; color: #0f172a;">${comp.financials.icr}배</div>
-                        </div>
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #ffffff; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #475569; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">↓</div>
-                    </div>
-
-                    <!-- Metric 3: 1년내 만기 차입금 -->
                     <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
-                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">1년내 만기 차입금</div>
-                        <div style="font-size: 22px; font-weight: 900; color: #0f172a;">${shortTermDebtText}</div>
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">영업활동현금흐름 (OCF)</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.ocf < 0 ? '#ef4444' : '#0f172a'};">${(comp.financials.ocf / 100000000).toFixed(0)}억</div>
+                    </div>
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                        <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px;">현금회전주기 (CCC)</div>
+                        <div style="font-size: 22px; font-weight: 900; color: ${comp.financials.cccDiff >= 10 ? '#ef4444' : '#0f172a'};">${comp.financials.cccCurrent}일</div>
                     </div>
                 </div>
 
