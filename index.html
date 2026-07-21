@@ -1688,7 +1688,7 @@
                             <span style="font-size: 16px;">🤖</span>
                             AI 심사역 실시간 컨텍스트 및 글로벌 동향 분석 (Disclosures & Chinese Inventory Trends)
                         </h4>
-                        <div id="ai-summary-content" class="report-text" style="font-size: 12px; line-height: 1.6; color: #334155; white-space: pre-wrap; font-family: 'Noto Sans KR', sans-serif;">
+                        <div id="ai-summary-content" class="report-text" style="font-size: 12px; line-height: 1.55; color: #334155; white-space: pre-line; text-align: left; word-break: keep-all; font-family: 'Noto Sans KR', sans-serif;">
                             로딩 중...
                         </div>
                     </div>
@@ -1744,7 +1744,7 @@
                         <div style="font-weight: 800; font-size: 13px; margin-bottom: 12px; color: #1e3a8a; border-bottom: 2px solid rgba(59, 130, 246, 0.15); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
                             ${qual.title || 'AI 심사역 실시간 정성 분석 보고서'}
                         </div>
-                        <div style="font-size: 11px; color: #475569; background: rgba(241, 245, 249, 0.6); padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #94a3b8; line-height: 1.45;">
+                        <div style="font-size: 11px; color: #475569; background: rgba(241, 245, 249, 0.6); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #94a3b8; line-height: 1.45; text-align: left;">
                             <strong>🔍 심사역 추론 추적 (PEVC Trace):</strong><br>
                             • 1단계 지표 추출: ${trace.step_1_metric_extraction || 'N/A'}<br>
                             • 2단계 논리 검증: ${trace.step_2_logical_verification || 'N/A'}
@@ -1754,7 +1754,7 @@
                     if (qual.content_paragraphs && Array.isArray(qual.content_paragraphs)) {
                         qual.content_paragraphs.forEach((pText) => {
                             html += `
-                                <p style="margin-bottom: 12px; font-size: 12px; line-height: 1.65; text-align: justify; color: #334155;">
+                                <p style="margin-bottom: 6px; font-size: 12px; line-height: 1.55; text-align: left; color: #334155; word-break: keep-all;">
                                     ${pText}
                                 </p>
                             `;
