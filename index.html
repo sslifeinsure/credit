@@ -1386,10 +1386,11 @@
 
             const badgeClass = comp.level === 'Red' ? 'report-badge-red' : (comp.level === 'Yellow' ? 'report-badge-yellow' : 'report-badge-green');
             const calloutClass = comp.level === 'Red' ? 'box-callout-red' : (comp.level === 'Yellow' ? 'box-callout-yellow' : 'box-callout-green');
+            const marginName = comp.sector === '철강' ? '롤마진' : (comp.sector === '에너지/정유' ? '정제마진' : '스프레드마진');
             const calloutTxt = comp.level === 'Red' 
                 ? `🚨 [경고 - Red 등급] 핵심 마진 스프레드가 심각한 적자 국면에 고착화되었으며 재고평가손실로 인한 실질 손익 훼손이 뚜렷하여 1~3년 내 디폴트 및 신용강등 리스크가 극도로 높습니다.`
                 : (comp.level === 'Yellow'
-                    ? `⚠️ [주의 - Yellow 등급] 롤마진이 손익분기점(BEP)을 하회하고 있으며, 운전자본 적체 및 재고평가 영향이 실적을 일정 부분 잠식하여 경계 단계의 모니터링이 요구됩니다.`
+                    ? `⚠️ [주의 - Yellow 등급] ${marginName}이(가) 손익분기점(BEP)을 하회하고 있으며, 운전자본 적체 및 재고평가 영향이 실적을 일정 부분 잠식하여 경계 단계의 모니터링이 요구됩니다.`
                     : `✅ [정상 - Green 등급] 주요 지표가 손익분기점을 지지하고 있으며 재고 기일 변동이 원만하여 단기적 다운사이드 위험 징후가 낮습니다.`);
 
             // Numbers format
