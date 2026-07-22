@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
             });
         }
 
-        const { name, sector, opinion, icr, ocf, daysCurrent, daysPrior, daysAR, daysAP, daysCCC, cccDiff } = body;
+        const { name, sector, opinion, icr, ocf, daysCurrent, daysPrior, daysAR, daysAP, daysCCC, cccDiff, rollMargin, bepMargin } = body;
         if (!name) {
             res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
             res.end(JSON.stringify({ error: 'name parameter is required' }));
@@ -59,6 +59,7 @@ module.exports = async (req, res) => {
 [추출된 핵심 재무/유동성 지표]
 - 이자보상배율(ICR): ${icr}배 (1.0배 미만 시 자체적 이자 상환 불가능 상태)
 - 영업현금흐름(OCF): ${ocf ? (ocf / 100000000).toFixed(2) : 0}억 원 (장부상 이익과 실질 현금 유입 간의 괴리 분석에 활용)
+- 핵심 매크로 지표(롤마진/스프레드): ${rollMargin !== undefined ? rollMargin : 'N/A'} (손익분기점 BEP: ${bepMargin !== undefined ? bepMargin : 'N/A'})
 - 재고 회전기일: ${daysCurrent}일 (전년동기 ${daysPrior}일)
 - 매출채권 회전기일: ${daysAR || 0}일
 - 매입채무 회전기일: ${daysAP || 0}일
@@ -74,6 +75,7 @@ module.exports = async (req, res) => {
    - **영업이익 하락**
    - **마진 스프레드 하락**
    - **중국 제고 증가** ('중국 제고 증가(재고 증가)'와 같이 작성하여 '중국 제고 증가'라는 형태를 반드시 텍스트에 남겨 주십시오.)
+5. 중요: '기본 신용 의견' 텍스트 내에 기재된 과거 마진 수치(예: $16.5 등)는 무시하고, 반드시 [추출된 핵심 재무/유동성 지표]에 제공된 최신 '핵심 매크로 지표' 값을 기준으로 분석 내용을 전면 재작성하십시오.
 
 JSON 스키마 템플릿:
 {
