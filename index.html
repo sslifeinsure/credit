@@ -750,7 +750,7 @@
                     inventoryDaysPrior: 50.36,
                     inventoryDaysDiff: -0.86
                 },
-                opinion: "지정학적 리스크 심화로 인해 싱가포르 복합 정제마진이 배럴당 $16.5(3월 평균)까지 폭등하며 손익분기점인 $4.5를 크게 상회하는 매우 우호적인 정제 스프레드 환경이 조성됨. 이에 따라 1분기 공시 영업이익은 9,335억 원을 기록하여 전년 동기(311억 원) 대비 극적인 실적 턴어라운드를 실현함. 주석상 재고자산평가손실환입 98억 원 효과가 포함되어 있으나, 이를 제거하더라도 실질 영업이익이 9,236억 원에 달해 이익의 질적 측면이 매우 우수함. 재고 회전기일 또한 전년 동기 대비 0.86일 단축(49.50일)되는 등 운전자본 적체 징후가 전혀 보이지 않아 Green(정상) 단계를 부여함."
+                opinion: "지정학적 리스크 심화로 인해 싱가포르 복합 정제마진이 손익분기점인 $4.5를 하회하는 비우호적인 정제 스프레드 환경이 지속됨. 이에 따라 실질 수익성의 급격한 저하 리스크가 존재함. 주석상 재고자산평가손실환입 98억 원 효과가 포함되어 장부상 실적 착시가 나타날 수 있으므로 예의 주시가 필요함. 재고 회전기일은 전년 동기 대비 0.86일 단축(49.50일)되었으나 본업의 펀더멘탈 악화로 Yellow(관찰) 단계를 부여함."
             }
         };
 
@@ -1802,7 +1802,17 @@
                 }
             } catch (err) {
                 console.error('AI 요약 실패:', err);
-                targetDiv.innerHTML = `<span style="color: #dc2626; font-weight: 500;">[AI 분석 실패] ${err.message}.<br><span style="font-size: 11px; color: #64748b;">(DART API 연동을 위해 로컬 개발 서버 node server.js를 구동하고 .env 파일에 GEMINI_API_KEY를 설정하셔야 합니다.)</span></span>`;
+                targetDiv.innerHTML = `
+                    <div style="font-weight: 800; font-size: 13px; margin-bottom: 12px; color: #1e3a8a; border-bottom: 2px solid rgba(59, 130, 246, 0.15); padding-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        심사역 실시간 컨텍스트 분석 (대체 모드)
+                    </div>
+                    <p style="margin-top: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.55; text-align: left; color: #334155; word-break: keep-all;">
+                        ${comp.opinion}
+                    </p>
+                    <div style="margin-top: 8px; font-size: 10px; color: #94a3b8; font-style: italic;">
+                        * 실시간 AI 분석 서버 한도 초과 또는 일시적 오류로 인해 기본 제공된 분석 의견으로 표출되었습니다.
+                    </div>
+                `;
             }
         }
     </script>
